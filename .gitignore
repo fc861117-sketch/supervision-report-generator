@@ -1,0 +1,4 @@
+reference/
+template-source.doc
+*.log
+*-test-output.docx

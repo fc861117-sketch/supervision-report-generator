@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>督導報告表生成</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+    <section class="panel">
+      <div class="titlebar">
+        <div>
+          <p class="eyebrow">新竹縣政府消防局</p>
+          <h1>主管督導報告表生成</h1>
+        </div>
+        <span class="badge">Word</span>
+      </div>
+
+      <form id="reportForm" class="form">
+        <label>
+          <span>督導日期</span>
+          <input id="reportDate" type="date" required>
+        </label>
+
+        <label>
+          <span>督導時間</span>
+          <input id="reportTime" type="time" required>
+        </label>
+
+        <label>
+          <span>督導人員</span>
+          <input id="supervisor" type="text" placeholder="請輸入姓名" required>
+        </label>
+
+        <label>
+          <span>督導單位</span>
+          <input id="unit" type="text" placeholder="例如：湖口分隊" required>
+        </label>
+
+        <div class="actions">
+          <button type="submit" id="generateBtn">產生 Word 檔</button>
+          <p id="status" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="vendor/pizzip.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
