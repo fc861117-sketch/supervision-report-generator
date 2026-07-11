@@ -1,4 +1,4 @@
-const TEMPLATE_PATH = "template.docx";
+const TEMPLATE_PATH = "template.docx?v=20260711-fix2";
 const TEXT_NODE_MAP = {
   rocCenturyPrefix: 21,
   rocYearLastDigit: 22,
@@ -57,7 +57,7 @@ function readForm() {
 }
 
 async function fetchTemplate() {
-  const response = await fetch(TEMPLATE_PATH);
+  const response = await fetch(TEMPLATE_PATH, { cache: "no-store" });
   if (!response.ok) {
     throw new Error(`template.docx HTTP ${response.status}`);
   }
