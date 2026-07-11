@@ -137,10 +137,16 @@ function buildDocx(templateBuffer, data) {
 function buildSummaryItems(data) {
   const count = randomInt(5, 7);
   const picked = shuffle(SUMMARY_POOL).slice(0, count - 2);
-  const endHour = (Number(data.hour) + 2) % 24;
-  const first = `\u67e5${data.hour}\u6642\u81f3${endHour}\u6642\u503c\u73ed\u4eba\u54e1\uff3f\uff3f\uff3f\uff0c\u4f9d\u898f\u65bc\u503c\u52e4\u53f0\u53d7\u7406\u76f8\u95dc\u6848\u4ef6\uff0c\u8b66\u89ba\u6027\u53ca\u670d\u52d9\u614b\u5ea6\u826f\u597d\uff1b\u672c\u65e5\u4e3b\u7ba1\u70ba\u5206\u968a\u9577\uff3f\uff3f\uff3f\u3002`;
+  const dutyRange = getDutyRange(Number(data.hour));
+  const first = `\u67e5${dutyRange}\u503c\u73ed\u4eba\u54e1\uff3f\uff3f\uff3f\uff0c\u4f9d\u898f\u65bc\u503c\u52e4\u53f0\u53d7\u7406\u76f8\u95dc\u6848\u4ef6\uff0c\u8b66\u89ba\u6027\u53ca\u670d\u52d9\u614b\u5ea6\u826f\u597d\uff1b\u672c\u65e5\u4e3b\u7ba1\u70ba\u5206\u968a\u9577\uff3f\uff3f\uff3f\u3002`;
   const second = `\u67e5\u7763\u5c0e\u671f\u9593\u4eba\u54e1\u5728\u968a\u60c5\u5f62\uff0c\u52e4\u52d9\u8868\u986f\u793a\u4e0a\u73ed\u8b66\u6d88${data.firefighterCount}\u540d\u3001\u5f79\u7537${data.conscriptCount}\u540d\uff0c\u7763\u5c0e\u7576\u4e0b\u5747\u5728\u968a\uff0c\u672a\u6709\u9055\u53cd\u52e4\u4f11\u6216\u98f2\u9152\u60c5\u4e8b\u3002`;
   return [first, second, ...picked].map((item, index) => `${CHINESE_NUMBERS[index]}\u3001${item}`);
+}
+
+function getDutyRange(hour) {
+  const start = Math.floor(hour / 2) * 2;
+  const end = (start + 2) % 24;
+  return end === 0 ? `${start}\u6642\u81f3\u7fcc\u65e50\u6642` : `${start}\u6642\u81f3${end}\u6642`;
 }
 
 function shuffle(items) {
