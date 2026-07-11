@@ -159,7 +159,8 @@ function randomInt(min, max) {
 function replaceTextNodes(xml, replacements) {
   let index = 0;
   const seen = new Set();
-  const nextXml = xml.replace(/(<(?:\w+:)?t\b[^>]*>)([\s\S]*?)(<\/(?:\w+:)?t>)/g, (match, open, text, close) => {
+  const textNodePattern = /<((?:\w+:)?t)\b([^>]*?)\/>|<((?:\w+:)?t)\b([^>]*?)>([\s\S]*?)<\/\3>/g;
+  const nextXml = xml.replace(textNodePattern, (match, selfTag, selfAttrs, tag, attrs, text) => {
     if (!Object.prototype.hasOwnProperty.call(replacements, index)) {
       index += 1;
       return match;
@@ -168,7 +169,9 @@ function replaceTextNodes(xml, replacements) {
     const value = escapeXml(String(replacements[index]));
     seen.add(index);
     index += 1;
-    return `${open}${value}${close}`;
+    const nodeName = selfTag || tag;
+    const nodeAttrs = selfAttrs || attrs || "";
+    return `<${nodeName}${nodeAttrs}>${value}</${nodeName}>`;
   });
 
   for (const key of Object.keys(replacements)) {
