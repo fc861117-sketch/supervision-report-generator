@@ -24,17 +24,17 @@ timeInput.value = toTimeInputValue(now);
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  setBusy(true, "產生中...");
+  setBusy(true, "\u7522\u751f\u4e2d...");
 
   try {
     const data = readForm();
     const template = await fetchTemplate();
     const output = buildDocx(template, data);
     downloadBlob(output, makeFileName(data));
-    setBusy(false, "已產生 Word 檔。");
+    setBusy(false, "\u5df2\u7522\u751f Word \u6a94\u3002");
   } catch (error) {
     console.error(error);
-    setBusy(false, "產生失敗，請確認 template.docx 與網路 CDN 可讀取。");
+    setBusy(false, `\u7522\u751f\u5931\u6557\uFF1A${error.message}`);
   }
 });
 
@@ -59,7 +59,7 @@ function readForm() {
 async function fetchTemplate() {
   const response = await fetch(TEMPLATE_PATH);
   if (!response.ok) {
-    throw new Error(`Template fetch failed: ${response.status}`);
+    throw new Error(`template.docx HTTP ${response.status}`);
   }
   return await response.arrayBuffer();
 }
@@ -67,41 +67,68 @@ async function fetchTemplate() {
 function buildDocx(templateBuffer, data) {
   const zip = new PizZip(templateBuffer);
   const xmlPath = "word/document.xml";
-  const parser = new DOMParser();
-  const serializer = new XMLSerializer();
-  const xml = zip.file(xmlPath).asText();
-  const documentXml = parser.parseFromString(xml, "application/xml");
-  const textNodes = Array.from(documentXml.getElementsByTagName("w:t"));
+  const xmlFile = zip.file(xmlPath);
+  if (!xmlFile) {
+    throw new Error("word/document.xml not found");
+  }
+
   const unitParts = splitUnit(data.unit);
+  let xml = xmlFile.asText();
+  xml = replaceTextNodes(xml, {
+    [TEXT_NODE_MAP.rocCenturyPrefix]: data.rocYear.slice(0, -1) || "0",
+    [TEXT_NODE_MAP.rocYearLastDigit]: data.rocYear.slice(-1),
+    [TEXT_NODE_MAP.month]: data.month,
+    [TEXT_NODE_MAP.day]: data.day,
+    [TEXT_NODE_MAP.hour]: data.hour,
+    [TEXT_NODE_MAP.minuteTens]: data.minute[0],
+    [TEXT_NODE_MAP.minuteOnes]: data.minute[1],
+    [TEXT_NODE_MAP.supervisor]: data.supervisor,
+    [TEXT_NODE_MAP.unitName]: unitParts.name,
+    [TEXT_NODE_MAP.unitSuffix]: unitParts.suffix
+  });
 
-  setText(textNodes, TEXT_NODE_MAP.rocCenturyPrefix, data.rocYear.slice(0, -1) || "0");
-  setText(textNodes, TEXT_NODE_MAP.rocYearLastDigit, data.rocYear.slice(-1));
-  setText(textNodes, TEXT_NODE_MAP.month, data.month);
-  setText(textNodes, TEXT_NODE_MAP.day, data.day);
-  setText(textNodes, TEXT_NODE_MAP.hour, data.hour);
-  setText(textNodes, TEXT_NODE_MAP.minuteTens, data.minute[0]);
-  setText(textNodes, TEXT_NODE_MAP.minuteOnes, data.minute[1]);
-  setText(textNodes, TEXT_NODE_MAP.supervisor, data.supervisor);
-  setText(textNodes, TEXT_NODE_MAP.unitName, unitParts.name);
-  setText(textNodes, TEXT_NODE_MAP.unitSuffix, unitParts.suffix);
-
-  zip.file(xmlPath, serializer.serializeToString(documentXml));
+  zip.file(xmlPath, xml);
   return zip.generate({
     type: "blob",
     mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   });
 }
 
-function setText(textNodes, index, value) {
-  if (!textNodes[index]) {
-    throw new Error(`Template text node ${index} not found`);
+function replaceTextNodes(xml, replacements) {
+  let index = 0;
+  const seen = new Set();
+  const nextXml = xml.replace(/(<(?:\w+:)?t\b[^>]*>)([\s\S]*?)(<\/(?:\w+:)?t>)/g, (match, open, text, close) => {
+    if (!Object.prototype.hasOwnProperty.call(replacements, index)) {
+      index += 1;
+      return match;
+    }
+
+    const value = escapeXml(String(replacements[index]));
+    seen.add(index);
+    index += 1;
+    return `${open}${value}${close}`;
+  });
+
+  for (const key of Object.keys(replacements)) {
+    if (!seen.has(Number(key))) {
+      throw new Error(`template text node ${key} not found`);
+    }
   }
-  textNodes[index].textContent = value;
+
+  return nextXml;
+}
+
+function escapeXml(value) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 function splitUnit(unit) {
-  if (unit.endsWith("分隊")) {
-    return { name: unit.slice(0, -2), suffix: "分隊" };
+  const suffix = "\u5206\u968a";
+  if (unit.endsWith(suffix)) {
+    return { name: unit.slice(0, -suffix.length), suffix };
   }
   return { name: unit, suffix: "" };
 }
