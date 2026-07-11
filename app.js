@@ -20,7 +20,6 @@ const SUMMARY_CLEAR_NODES = [
   81, 83, 84, 85
 ];
 const HANDLING_NODES = [86, 88, 89, 90, 91];
-const CHINESE_NUMBERS = ["一", "二", "三", "四", "五", "六", "七"];
 const SUMMARY_POOL = [
   "\u67e5\u503c\u73ed\u53f0\u74b0\u5883\u3001\u5e38\u7528\u7c3f\u518a\u53ca\u8fa6\u516c\u7269\u54c1\u64fa\u653e\u60c5\u5f62\uff0c\u73fe\u5834\u7dad\u6301\u6574\u6f54\uff0c\u7269\u54c1\u5747\u80fd\u5206\u985e\u6536\u7d0d\u3002",
   "\u67e5\u52e4\u52d9\u7d00\u9304\u3001\u5de5\u4f5c\u7d00\u9304\u53ca\u51fa\u5165\u767b\u8a18\u60c5\u5f62\uff0c\u5404\u9805\u8cc7\u6599\u5747\u80fd\u4f9d\u52e4\u52d9\u57f7\u884c\u60c5\u5f62\u8a18\u8f09\u3002",
@@ -135,12 +134,11 @@ function buildDocx(templateBuffer, data) {
 }
 
 function buildSummaryItems(data) {
-  const count = randomInt(5, 7);
-  const picked = shuffle(SUMMARY_POOL).slice(0, count - 2);
+  const picked = shuffle(SUMMARY_POOL).slice(0, 5);
   const dutyRange = getDutyRange(Number(data.hour));
   const first = `\u67e5${dutyRange}\u503c\u73ed\u4eba\u54e1\uff3f\uff3f\uff3f\uff0c\u4f9d\u898f\u65bc\u503c\u52e4\u53f0\u53d7\u7406\u76f8\u95dc\u6848\u4ef6\uff0c\u8b66\u89ba\u6027\u53ca\u670d\u52d9\u614b\u5ea6\u826f\u597d\uff1b\u672c\u65e5\u4e3b\u7ba1\u70ba\u5206\u968a\u9577\uff3f\uff3f\uff3f\u3002`;
   const second = `\u67e5\u7763\u5c0e\u671f\u9593\u4eba\u54e1\u5728\u968a\u60c5\u5f62\uff0c\u52e4\u52d9\u8868\u986f\u793a\u4e0a\u73ed\u8b66\u6d88${data.firefighterCount}\u540d\u3001\u5f79\u7537${data.conscriptCount}\u540d\uff0c\u7763\u5c0e\u7576\u4e0b\u5747\u5728\u968a\uff0c\u672a\u6709\u9055\u53cd\u52e4\u4f11\u6216\u98f2\u9152\u60c5\u4e8b\u3002`;
-  return [first, second, ...picked].map((item, index) => `${CHINESE_NUMBERS[index]}\u3001${item}`);
+  return [first, second, ...picked];
 }
 
 function getDutyRange(hour) {
@@ -156,10 +154,6 @@ function shuffle(items) {
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
-}
-
-function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function replaceTextNodes(xml, replacements) {
